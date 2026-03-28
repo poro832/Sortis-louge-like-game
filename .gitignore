@@ -1,0 +1,39 @@
+# Godot 4 specific
+.godot/
+*.translation
+
+# Godot exported builds
+export/
+build/
+*.exe
+*.x86_64
+*.pck
+
+# C# / .NET
+.mono/
+*.csproj.old
+*.sln.old
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+*.tmp
+*.bak
+*.log
