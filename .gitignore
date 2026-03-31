@@ -1,6 +1,7 @@
 # Godot 4 specific
 .godot/
 *.translation
+*.import
 
 # Godot exported builds
 export/
@@ -19,6 +20,7 @@ obj/
 *.suo
 *.userprefs
 *.DotSettings.user
+*.cache
 
 # IDE
 .vs/
