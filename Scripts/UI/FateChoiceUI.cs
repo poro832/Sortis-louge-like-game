@@ -74,7 +74,7 @@ public partial class FateChoiceUI : PanelContainer
         desc.AutowrapMode = TextServer.AutowrapMode.Word;
 
         var button = new Button();
-        button.Text = "Choose";
+        button.Text = "선택";
         int capturedIndex = index;
         button.Pressed += () => OnOptionSelected(capturedIndex);
 

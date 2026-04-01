@@ -31,7 +31,7 @@ public class Enemy
         UpdateIntent();
     }
 
-    public static Enemy ShadowKnight() => new("Shadow Knight", 40, new[]
+    public static Enemy ShadowKnight() => new("그림자 기사", 40, new[]
     {
         (IntentType.Attack, 12),
         (IntentType.Attack, 8),

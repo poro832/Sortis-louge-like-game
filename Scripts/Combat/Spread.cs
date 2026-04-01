@@ -27,13 +27,13 @@ public class Spread
     }
 
     /// <summary>원 카드 스프레드 — 1장 즉시 발동 (튜토리얼용)</summary>
-    public static Spread OneCard() => new("One Card", new()
+    public static Spread OneCard() => new("원 카드", new()
     {
         new SpreadSlot(SlotPosition.Present)
     });
 
     /// <summary>쓰리 카드 스프레드 — 과거/현재/미래 기본 전투 배치</summary>
-    public static Spread ThreeCard() => new("Three Card", new()
+    public static Spread ThreeCard() => new("쓰리 카드", new()
     {
         new SpreadSlot(SlotPosition.Past),
         new SpreadSlot(SlotPosition.Present),
@@ -41,7 +41,7 @@ public class Spread
     });
 
     /// <summary>크로스 스프레드 — 5슬롯, 액트 2에서 언락</summary>
-    public static Spread Cross() => new("Cross", new()
+    public static Spread Cross() => new("크로스", new()
     {
         new SpreadSlot(SlotPosition.Above),
         new SpreadSlot(SlotPosition.Left),

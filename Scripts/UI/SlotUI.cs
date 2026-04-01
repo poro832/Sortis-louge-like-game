@@ -56,12 +56,12 @@ public partial class SlotUI : Panel
         _slotIndex = index;
         _positionLabel.Text = position switch
         {
-            SlotPosition.Past => "Past",
-            SlotPosition.Present => "Present",
-            SlotPosition.Future => "Future",
+            SlotPosition.Past => "과거",
+            SlotPosition.Present => "현재",
+            SlotPosition.Future => "미래",
             _ => position.ToString()
         };
-        _cardInfoLabel.Text = "(empty)";
+        _cardInfoLabel.Text = "(비어있음)";
         _hasCard = false;
     }
 
@@ -69,11 +69,11 @@ public partial class SlotUI : Panel
     {
         _hasCard = true;
         string info = card.Data.CardName;
-        if (card.IsReversed) info += " (R)";
+        if (card.IsReversed) info += " (역)";
         info += "\n";
-        if (card.GetDamage() > 0) info += $"DMG {card.GetDamage()} ";
-        if (card.GetBlock() > 0) info += $"BLK {card.GetBlock()} ";
-        if (card.GetDraw() > 0) info += $"DRW {card.GetDraw()}";
+        if (card.GetDamage() > 0) info += $"피해 {card.GetDamage()} ";
+        if (card.GetBlock() > 0) info += $"방어 {card.GetBlock()} ";
+        if (card.GetDraw() > 0) info += $"드로우 {card.GetDraw()}";
         _cardInfoLabel.Text = info;
 
         var style = new StyleBoxFlat();
@@ -93,7 +93,7 @@ public partial class SlotUI : Panel
     public void ClearCard()
     {
         _hasCard = false;
-        _cardInfoLabel.Text = "(empty)";
+        _cardInfoLabel.Text = "(비어있음)";
 
         var style = new StyleBoxFlat();
         style.BgColor = new Color("#2C2C2C");

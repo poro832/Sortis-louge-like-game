@@ -33,7 +33,7 @@ public class Card
 
 	public override string ToString()
 	{
-		string dir = IsReversed ? " (Reversed)" : "";
+		string dir = IsReversed ? " (역방향)" : "";
 		return Data.IsMajorArcana
 			? $"[{Data.MajorNumber}] {Data.CardName}{dir}"
 			: $"{Data.CardName} of {Data.Suit}{dir}";

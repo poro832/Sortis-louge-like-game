@@ -73,10 +73,10 @@ public partial class CardUI : Panel
         int drw = _card.GetDraw();
         int heal = _card.GetHeal();
 
-        if (dmg > 0) stats += $"DMG {dmg}\n";
-        if (blk > 0) stats += $"BLK {blk}\n";
-        if (drw > 0) stats += $"DRW {drw}\n";
-        if (heal > 0) stats += $"HEAL {heal}";
+        if (dmg > 0) stats += $"피해 {dmg}\n";
+        if (blk > 0) stats += $"방어 {blk}\n";
+        if (drw > 0) stats += $"드로우 {drw}\n";
+        if (heal > 0) stats += $"회복 {heal}";
         _statsLabel.Text = stats.TrimEnd();
 
         // 수트별 배경색

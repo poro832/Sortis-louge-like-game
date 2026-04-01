@@ -70,7 +70,7 @@ public partial class BattleUI : Control
 
         _battle.StartBattle();
         RefreshUI();
-        Log("Battle Start! Shadow Knight appears.");
+        Log("전투 시작! 그림자 기사가 나타났다.");
     }
 
     // --- UI 구축 ---
@@ -117,11 +117,11 @@ public partial class BattleUI : Control
         var buttonHBox = new HBoxContainer();
         buttonHBox.AddThemeConstantOverride("separation", 30);
 
-        _activateButton = new Button { Text = "Activate Spread" };
+        _activateButton = new Button { Text = "스프레드 발동" };
         _activateButton.CustomMinimumSize = new Vector2(160, 40);
         _activateButton.Pressed += OnActivatePressed;
 
-        _endTurnButton = new Button { Text = "End Turn" };
+        _endTurnButton = new Button { Text = "턴 종료" };
         _endTurnButton.CustomMinimumSize = new Vector2(120, 40);
         _endTurnButton.Pressed += OnEndTurnPressed;
 
@@ -168,7 +168,7 @@ public partial class BattleUI : Control
         _resultLabel.Visible = false;
         AddChild(_resultLabel);
 
-        _restartButton = new Button { Text = "Restart" };
+        _restartButton = new Button { Text = "재시작" };
         _restartButton.SetAnchorsPreset(LayoutPreset.Center);
         _restartButton.Position = new Vector2(-50, 40);
         _restartButton.CustomMinimumSize = new Vector2(100, 40);
@@ -219,7 +219,7 @@ public partial class BattleUI : Control
         }
         else
         {
-            Log("Not enough energy!");
+            Log("에너지가 부족합니다!");
         }
     }
 
@@ -231,16 +231,16 @@ public partial class BattleUI : Control
             if (slot.HasCard) { hasAny = true; break; }
         if (!hasAny)
         {
-            Log("Place at least one card first!");
+            Log("카드를 최소 1장 배치하세요!");
             return;
         }
 
         _pendingActivation = _battle.ActivateSpread();
         var r = _pendingActivation;
 
-        string logMsg = $"Spread activated! DMG:{r.FinalDamage} BLK:{r.FinalBlock}";
+        string logMsg = $"스프레드 발동! 피해:{r.FinalDamage} 방어:{r.FinalBlock}";
         if (r.ProphecyResult.IsHit)
-            logMsg += $" | PROPHECY HIT! x{r.ProphecyResult.Multiplier:F1}";
+            logMsg += $" | 예언 적중! x{r.ProphecyResult.Multiplier:F1}";
         Log(logMsg);
 
         // 운명 선택지 표시
@@ -262,7 +262,7 @@ public partial class BattleUI : Control
         _battle.ApplyFateOption(option, _pendingActivation);
         _fateChoiceUI.Hide();
 
-        Log($"Fate chosen: {option.Name}");
+        Log($"운명 선택: {option.Name}");
 
         // 적 턴
         if (!_battle.IsEnemyDead)
@@ -308,18 +308,18 @@ public partial class BattleUI : Control
         _battle.EndTurn();
         _battle.StartTurn();
 
-        Log("Turn ended. Enemy attacks!");
+        Log("턴 종료. 적이 공격합니다!");
         RefreshUI();
     }
 
     private void OnProphecyRevealed(ProphecyCondition condition)
     {
-        _prophecyLabel.Text = $"Prophecy: {condition.Description}";
+        _prophecyLabel.Text = $"예언: {condition.Description}";
     }
 
     private void OnProphecyHit(ProphecyResult result)
     {
-        _prophecyLabel.Text += $"  >>> HIT! x{result.Multiplier:F1}";
+        _prophecyLabel.Text += $"  >>> 적중! x{result.Multiplier:F1}";
     }
 
     private void OnFateChosen(FateOption option) { }
@@ -330,11 +330,11 @@ public partial class BattleUI : Control
     {
         // 적 정보
         var e = _battle.Enemy;
-        string intentIcon = e.CurrentIntent == IntentType.Attack ? "ATK" : "DEF";
-        _enemyInfoLabel.Text = $"{e.Name}  HP: {e.Hp}/{e.MaxHp}  BLK: {e.Block}  Intent: {intentIcon} {e.CurrentIntentValue}";
+        string intentIcon = e.CurrentIntent == IntentType.Attack ? "공격" : "방어";
+        _enemyInfoLabel.Text = $"{e.Name}  체력: {e.Hp}/{e.MaxHp}  방어: {e.Block}  의도: {intentIcon} {e.CurrentIntentValue}";
 
         // 플레이어 정보
-        _playerInfoLabel.Text = $"HP: {_battle.PlayerHp}/{_battle.PlayerMaxHp}   Energy: {_battle.Energy}/{_battle.MaxEnergy}   Block: {_battle.PlayerBlock}   Streak: {_battle.ConsecutiveHits}";
+        _playerInfoLabel.Text = $"체력: {_battle.PlayerHp}/{_battle.PlayerMaxHp}   에너지: {_battle.Energy}/{_battle.MaxEnergy}   방어: {_battle.PlayerBlock}   연속 적중: {_battle.ConsecutiveHits}";
 
         // 슬롯 갱신
         for (int i = 0; i < _slotUIs.Count; i++)
@@ -375,12 +375,12 @@ public partial class BattleUI : Control
 
         if (_battle.IsEnemyDead)
         {
-            _resultLabel.Text = "VICTORY!";
+            _resultLabel.Text = "승리!";
             _resultLabel.AddThemeColorOverride("font_color", new Color("#D4AF37"));
         }
         else
         {
-            _resultLabel.Text = "DEFEAT...";
+            _resultLabel.Text = "패배...";
             _resultLabel.AddThemeColorOverride("font_color", new Color("#C0392B"));
         }
         _resultLabel.Visible = true;
