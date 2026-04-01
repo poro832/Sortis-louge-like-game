@@ -8,31 +8,34 @@ namespace Sortis.Cards;
 /// </summary>
 public class Card
 {
-    public CardData Data { get; }
-    public CardOrientation Orientation { get; set; }
+	public CardData Data { get; }
+	public CardOrientation Orientation { get; set; }
 
-    public Card(CardData data, CardOrientation orientation = CardOrientation.Upright)
-    {
-        Data = data;
-        Orientation = orientation;
-    }
+	public Card(CardData data, CardOrientation orientation = CardOrientation.Upright)
+	{
+		Data = data;
+		Orientation = orientation;
+	}
 
-    public bool IsReversed => Orientation == CardOrientation.Reversed;
+	public bool IsReversed => Orientation == CardOrientation.Reversed;
 
-    /// <summary>정/역방향에 따른 실제 데미지</summary>
-    public int GetDamage() => IsReversed ? Data.ReversedDamage : Data.Damage;
+	/// <summary>정/역방향에 따른 실제 데미지</summary>
+	public int GetDamage() => IsReversed ? Data.ReversedDamage : Data.Damage;
 
-    /// <summary>정/역방향에 따른 실제 블록</summary>
-    public int GetBlock() => IsReversed ? Data.ReversedBlock : Data.Block;
+	/// <summary>정/역방향에 따른 실제 블록</summary>
+	public int GetBlock() => IsReversed ? Data.ReversedBlock : Data.Block;
 
-    /// <summary>정/역방향에 따른 실제 드로우</summary>
-    public int GetDraw() => IsReversed ? Data.ReversedDraw : Data.Draw;
+	/// <summary>정/역방향에 따른 실제 드로우</summary>
+	public int GetDraw() => IsReversed ? Data.ReversedDraw : Data.Draw;
 
-    public override string ToString()
-    {
-        string dir = IsReversed ? " (Reversed)" : "";
-        return Data.IsMajorArcana
-            ? $"[{Data.MajorNumber}] {Data.CardName}{dir}"
-            : $"{Data.CardName} of {Data.Suit}{dir}";
-    }
+	/// <summary>정/역방향에 따른 실제 힐</summary>
+	public int GetHeal() => IsReversed ? Data.ReversedHeal : Data.Heal;
+
+	public override string ToString()
+	{
+		string dir = IsReversed ? " (Reversed)" : "";
+		return Data.IsMajorArcana
+			? $"[{Data.MajorNumber}] {Data.CardName}{dir}"
+			: $"{Data.CardName} of {Data.Suit}{dir}";
+	}
 }

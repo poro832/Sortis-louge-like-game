@@ -24,10 +24,13 @@ public partial class CardData : Resource
     [Export(PropertyHint.MultilineText)]
     public string Description { get; set; } = "";
 
+    [Export] public int Heal { get; set; }
+
     // --- 역방향 효과 ---
     [Export] public int ReversedDamage { get; set; }
     [Export] public int ReversedBlock { get; set; }
     [Export] public int ReversedDraw { get; set; }
+    [Export] public int ReversedHeal { get; set; }
     [Export(PropertyHint.MultilineText)]
     public string ReversedDescription { get; set; } = "";
 
