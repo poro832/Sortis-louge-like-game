@@ -55,3 +55,24 @@ public enum CardOrientation
     Upright,    // 정방향
     Reversed    // 역방향 — 효과 반전/변형
 }
+
+/// <summary>
+/// 게임 모드
+/// </summary>
+public enum GameMode
+{
+    Practice,   // 연습 모드 — 즉시 전투
+    Story,      // 스토리 모드 — 맵 진행
+    Endless     // 무한 모드 — 끝없는 전투
+}
+
+/// <summary>
+/// 전투 페이즈
+/// </summary>
+public enum BattlePhase
+{
+    Placement,  // 카드 배치
+    Activation, // 스프레드 발동
+    Fate,       // 운명 선택
+    EnemyTurn   // 적 턴
+}

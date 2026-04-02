@@ -56,6 +56,25 @@ public class Deck
             _discardPile.Add(card);
     }
 
+    /// <summary>핸드에서 카드를 제거한다. 배치 슬롯으로 옮길 때 사용한다.</summary>
+    public bool RemoveFromHand(Card card)
+    {
+        return _hand.Remove(card);
+    }
+
+    /// <summary>카드를 핸드에 추가한다. 슬롯에서 회수할 때 사용한다.</summary>
+    public void ReturnToHand(Card card)
+    {
+        if (!_hand.Contains(card))
+            _hand.Add(card);
+    }
+
+    /// <summary>슬롯 등 외부 영역의 카드를 버림패로 이동한다.</summary>
+    public void Discard(Card card)
+    {
+        _discardPile.Add(card);
+    }
+
     /// <summary>턴 종료 시 남은 핸드 전부 버림</summary>
     public void DiscardAllHand()
     {

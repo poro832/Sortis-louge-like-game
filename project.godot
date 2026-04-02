@@ -16,9 +16,13 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="Sortis"
 config/description="Tarot Roguelike Deckbuilder — Manipulate fate through tarot readings"
-run/main_scene="res://Scenes/Battle.tscn"
+run/main_scene="res://Scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://Assets/icon.svg"
+
+[autoload]
+
+SceneManager="*res://Scripts/Core/SceneManager.cs"
 
 [display]
 

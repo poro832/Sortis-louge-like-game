@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Sortis.Cards;
 using Sortis.Core;
 using Sortis.Prophecy;
@@ -66,8 +67,11 @@ public class BattleManager
             return false;
         if (Energy < card.Data.EnergyCost)
             return false;
+        if (!_deck.Hand.Contains(card))
+            return false;
         if (_currentSpread.Slots[slotIndex].PlaceCard(card))
         {
+            _deck.RemoveFromHand(card);
             Energy -= card.Data.EnergyCost;
             return true;
         }
@@ -83,6 +87,7 @@ public class BattleManager
         {
             Energy += card.Data.EnergyCost;
             slot.RemoveCard();
+            _deck.ReturnToHand(card);
             return true;
         }
         return false;
@@ -126,7 +131,7 @@ public class BattleManager
         foreach (var slot in _currentSpread.Slots)
         {
             if (slot.RemoveCard() is { } card)
-                _deck.DiscardFromHand(card);
+                _deck.Discard(card);
         }
 
         return new ActivationResult(result, prophecyResult, fateChoice, finalDamage, finalBlock);

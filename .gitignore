@@ -39,3 +39,10 @@ desktop.ini
 *.tmp
 *.bak
 *.log
+
+# Build tools cache
+.nuget-local/
+.tools/
+
+# API keys
+generate_assets.py
