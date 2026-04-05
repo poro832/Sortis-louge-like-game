@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Sortis.Cards;
 using Sortis.Combat;
 using Sortis.Core;
@@ -45,6 +46,7 @@ public partial class BattleUI : Control
     private Label _turnLabel = null!;
     private Control _popupLayer = null!;
     private PanelContainer _pauseOverlay = null!;
+    private Label _spreadPreviewLabel = null!;
     private ActivationResult? _pendingActivation;
 
     public override void _Ready()
@@ -85,11 +87,11 @@ public partial class BattleUI : Control
         Log("전투 시작! 그림자 기사가 나타났다.");
     }
 
-    // --- UI 구축 ---
+    // --- UI 구축 (오버레이 방식) ---
 
     private void BuildLayout()
     {
-        // 셰이더 배경
+        // ═══ 레이어 0: 셰이더 배경 (전체 화면) ═══
         var bg = new ColorRect();
         bg.Color = Colors.White;
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -101,86 +103,81 @@ public partial class BattleUI : Control
         // 분위기 파티클
         AddChild(new MysticParticles(MysticParticles.ParticleStyle.Mixed));
 
-        // 메인 레이아웃
-        var margin = new MarginContainer();
-        margin.SetAnchorsPreset(LayoutPreset.FullRect);
-        margin.AddThemeConstantOverride("margin_left", 16);
-        margin.AddThemeConstantOverride("margin_right", 16);
-        margin.AddThemeConstantOverride("margin_top", 8);
-        margin.AddThemeConstantOverride("margin_bottom", 8);
-        AddChild(margin);
+        // ═══ 레이어 1: 하단 그라데이션 (카드 영역 가독성) ═══
+        var bottomGrad = new ColorRect();
+        bottomGrad.AnchorLeft = 0; bottomGrad.AnchorRight = 1;
+        bottomGrad.AnchorTop = 0.55f; bottomGrad.AnchorBottom = 1;
+        bottomGrad.OffsetLeft = 0; bottomGrad.OffsetRight = 0;
+        bottomGrad.OffsetTop = 0; bottomGrad.OffsetBottom = 0;
+        bottomGrad.Color = new Color(0, 0, 0, 0.6f);
+        bottomGrad.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(bottomGrad);
 
-        var mainVBox = new VBoxContainer();
-        mainVBox.AddThemeConstantOverride("separation", 6);
-        margin.AddChild(mainVBox);
-
-        // ═══ 상단 바: 턴 + 페이즈 ═══
-        var topBar = MakeSection();
-        var topHBox = new HBoxContainer();
-        topHBox.Alignment = BoxContainer.AlignmentMode.Center;
-        topHBox.AddThemeConstantOverride("separation", 30);
+        // ═══ 상단 좌측: 턴 + 페이즈 ═══
+        var topLeft = new HBoxContainer();
+        topLeft.AnchorLeft = 0; topLeft.AnchorTop = 0;
+        topLeft.OffsetLeft = 16; topLeft.OffsetTop = 10;
+        topLeft.AddThemeConstantOverride("separation", 12);
 
         _turnLabel = new Label();
         _turnLabel.AddThemeColorOverride("font_color", GoldColor);
-        FontManager.ApplyBody(_turnLabel, 16);
-        topHBox.AddChild(_turnLabel);
+        FontManager.ApplyBody(_turnLabel, 18);
+        topLeft.AddChild(_turnLabel);
 
         _phaseIndicator = new PhaseIndicator();
-        topHBox.AddChild(_phaseIndicator);
+        topLeft.AddChild(_phaseIndicator);
 
-        topBar.AddChild(topHBox);
-        mainVBox.AddChild(topBar);
+        AddChild(topLeft);
 
-        // ═══ 적 영역 ═══
-        var enemySection = MakeSection();
-        var enemyVBox = new VBoxContainer();
-        enemyVBox.AddThemeConstantOverride("separation", 6);
-
-        var enemyRow = new HBoxContainer();
-        enemyRow.Alignment = BoxContainer.AlignmentMode.Center;
-        enemyRow.AddThemeConstantOverride("separation", 16);
+        // ═══ 상단 중앙: 적 정보 (플로팅) ═══
+        var enemyArea = new VBoxContainer();
+        enemyArea.AnchorLeft = 0.5f; enemyArea.AnchorTop = 0;
+        enemyArea.OffsetLeft = -180; enemyArea.OffsetTop = 10;
+        enemyArea.CustomMinimumSize = new Vector2(360, 0);
+        enemyArea.AddThemeConstantOverride("separation", 4);
 
         _enemyNameLabel = new Label();
+        _enemyNameLabel.HorizontalAlignment = HorizontalAlignment.Center;
         _enemyNameLabel.AddThemeColorOverride("font_color", new Color("#E74C3C"));
-        FontManager.ApplyTitle(_enemyNameLabel, 20);
-        enemyRow.AddChild(_enemyNameLabel);
+        FontManager.ApplyTitle(_enemyNameLabel, 22);
+        enemyArea.AddChild(_enemyNameLabel);
 
         _enemyHealthBar = new HealthBar();
-        _enemyHealthBar.CustomMinimumSize = new Vector2(220, 22);
+        _enemyHealthBar.CustomMinimumSize = new Vector2(280, 20);
+        _enemyHealthBar.SizeFlagsHorizontal = SizeFlags.ShrinkCenter;
         _enemyHealthBar.SetColors(new Color("#C0392B"), new Color("#1A1A1A"), new Color("#444444"));
-        enemyRow.AddChild(_enemyHealthBar);
+        enemyArea.AddChild(_enemyHealthBar);
 
         _enemyIntentLabel = new Label();
-        _enemyIntentLabel.AddThemeFontSizeOverride("font_size", 18);
-        enemyRow.AddChild(_enemyIntentLabel);
+        _enemyIntentLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _enemyIntentLabel.AddThemeFontSizeOverride("font_size", 16);
+        enemyArea.AddChild(_enemyIntentLabel);
 
-        enemyVBox.AddChild(enemyRow);
-
-        // 예언 표시
         _prophecyLabel = new Label();
         _prophecyLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _prophecyLabel.AddThemeFontSizeOverride("font_size", 15);
+        _prophecyLabel.AddThemeFontSizeOverride("font_size", 14);
         _prophecyLabel.AddThemeColorOverride("font_color", GoldColor);
-        enemyVBox.AddChild(_prophecyLabel);
+        enemyArea.AddChild(_prophecyLabel);
 
-        enemySection.AddChild(enemyVBox);
-        mainVBox.AddChild(enemySection);
+        AddChild(enemyArea);
 
-        // ═══ 스프레드 영역 ═══
-        var spreadSection = MakeSection();
-        var spreadVBox = new VBoxContainer();
-        spreadVBox.AddThemeConstantOverride("separation", 10);
+        // ═══ 중앙: 스프레드 슬롯 (화면 중앙에 플로팅) ═══
+        var spreadArea = new VBoxContainer();
+        spreadArea.AnchorLeft = 0.5f; spreadArea.AnchorTop = 0.5f;
+        spreadArea.OffsetLeft = -240; spreadArea.OffsetTop = -120;
+        spreadArea.CustomMinimumSize = new Vector2(480, 0);
+        spreadArea.AddThemeConstantOverride("separation", 8);
 
         var spreadTitle = new Label();
         spreadTitle.Text = "⚜ 스프레드 ⚜";
         spreadTitle.HorizontalAlignment = HorizontalAlignment.Center;
-        spreadTitle.AddThemeColorOverride("font_color", new Color("#6A6A8A"));
-        FontManager.ApplyTitle(spreadTitle, 14);
-        spreadVBox.AddChild(spreadTitle);
+        spreadTitle.AddThemeColorOverride("font_color", new Color("#8A8AAA"));
+        FontManager.ApplyTitle(spreadTitle, 13);
+        spreadArea.AddChild(spreadTitle);
 
         var slotCenter = new CenterContainer();
         _slotContainer = new HBoxContainer();
-        _slotContainer.AddThemeConstantOverride("separation", 20);
+        _slotContainer.AddThemeConstantOverride("separation", 16);
         for (int i = 0; i < 3; i++)
         {
             var slot = new SlotUI();
@@ -188,92 +185,114 @@ public partial class BattleUI : Control
             _slotContainer.AddChild(slot);
         }
         slotCenter.AddChild(_slotContainer);
-        spreadVBox.AddChild(slotCenter);
+        spreadArea.AddChild(slotCenter);
 
-        // 액션 버튼
-        var buttonCenter = new CenterContainer();
-        var buttonHBox = new HBoxContainer();
-        buttonHBox.AddThemeConstantOverride("separation", 20);
+        AddChild(spreadArea);
 
-        _activateButton = MakeGoldButton("⚡ 스프레드 발동", 180);
-        _activateButton.Pressed += OnActivatePressed;
-        buttonHBox.AddChild(_activateButton);
+        // ═══ 스프레드 효과 미리보기 (슬롯 우측) ═══
+        var previewPanel = new PanelContainer();
+        previewPanel.AnchorLeft = 0.5f; previewPanel.AnchorTop = 0.5f;
+        previewPanel.OffsetLeft = 260; previewPanel.OffsetTop = -100;
+        previewPanel.CustomMinimumSize = new Vector2(200, 0);
+        var previewStyle = new StyleBoxFlat();
+        previewStyle.BgColor = new Color("#0D0D1A", 0.75f);
+        previewStyle.SetCornerRadiusAll(8);
+        previewStyle.BorderColor = new Color(GoldColor, 0.3f);
+        previewStyle.SetBorderWidthAll(1);
+        previewStyle.SetContentMarginAll(10);
+        previewPanel.AddThemeStyleboxOverride("panel", previewStyle);
 
-        _endTurnButton = MakeGoldButton("턴 종료", 130);
-        _endTurnButton.Pressed += OnEndTurnPressed;
-        buttonHBox.AddChild(_endTurnButton);
+        _spreadPreviewLabel = new Label();
+        _spreadPreviewLabel.AutowrapMode = TextServer.AutowrapMode.Word;
+        _spreadPreviewLabel.AddThemeFontSizeOverride("font_size", 12);
+        _spreadPreviewLabel.AddThemeColorOverride("font_color", new Color("#CCCCDD"));
+        _spreadPreviewLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.7f));
+        _spreadPreviewLabel.AddThemeConstantOverride("shadow_offset_x", 1);
+        _spreadPreviewLabel.AddThemeConstantOverride("shadow_offset_y", 1);
+        _spreadPreviewLabel.Text = "카드를 배치하면\n효과를 미리 볼 수 있습니다";
+        previewPanel.AddChild(_spreadPreviewLabel);
+        AddChild(previewPanel);
 
-        buttonCenter.AddChild(buttonHBox);
-        spreadVBox.AddChild(buttonCenter);
-
-        spreadSection.AddChild(spreadVBox);
-        mainVBox.AddChild(spreadSection);
-
-        // ═══ 로그 ═══
+        // ═══ 로그 (스프레드 아래 중앙) ═══
         _logLabel = new Label();
+        _logLabel.AnchorLeft = 0.5f; _logLabel.AnchorTop = 0.5f;
+        _logLabel.OffsetLeft = -300; _logLabel.OffsetTop = 85;
+        _logLabel.CustomMinimumSize = new Vector2(600, 24);
         _logLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _logLabel.CustomMinimumSize = new Vector2(0, 28);
         _logLabel.AddThemeFontSizeOverride("font_size", 14);
-        _logLabel.AddThemeColorOverride("font_color", TextGray);
-        mainVBox.AddChild(_logLabel);
+        _logLabel.AddThemeColorOverride("font_color", new Color("#AAAACC"));
+        AddChild(_logLabel);
 
-        // ═══ 플레이어 영역 ═══
-        var playerSection = MakeSection();
-        var playerRow = new HBoxContainer();
-        playerRow.Alignment = BoxContainer.AlignmentMode.Center;
-        playerRow.AddThemeConstantOverride("separation", 20);
+        // ═══ 좌하단: 플레이어 HP + 에너지 ═══
+        var playerArea = new VBoxContainer();
+        playerArea.AnchorLeft = 0; playerArea.AnchorBottom = 1;
+        playerArea.OffsetLeft = 16; playerArea.OffsetBottom = -12;
+        playerArea.AnchorTop = 1;
+        playerArea.OffsetTop = -80;
+        playerArea.AddThemeConstantOverride("separation", 6);
 
+        var hpRow = new HBoxContainer();
+        hpRow.AddThemeConstantOverride("separation", 8);
         var hpLabel = new Label { Text = "HP" };
         hpLabel.AddThemeFontSizeOverride("font_size", 14);
         hpLabel.AddThemeColorOverride("font_color", new Color("#27AE60"));
-        playerRow.AddChild(hpLabel);
+        hpRow.AddChild(hpLabel);
 
         _playerHealthBar = new HealthBar();
-        _playerHealthBar.CustomMinimumSize = new Vector2(200, 22);
+        _playerHealthBar.CustomMinimumSize = new Vector2(160, 18);
         _playerHealthBar.SetColors(new Color("#27AE60"), new Color("#1A1A1A"), new Color("#444444"));
-        playerRow.AddChild(_playerHealthBar);
-
-        var energyLabel = new Label { Text = "에너지" };
-        energyLabel.AddThemeFontSizeOverride("font_size", 14);
-        energyLabel.AddThemeColorOverride("font_color", GoldColor);
-        playerRow.AddChild(energyLabel);
-
-        _playerEnergyDisplay = new EnergyDisplay();
-        playerRow.AddChild(_playerEnergyDisplay);
+        hpRow.AddChild(_playerHealthBar);
 
         _playerInfoLabel = new Label();
         _playerInfoLabel.AddThemeFontSizeOverride("font_size", 14);
         _playerInfoLabel.AddThemeColorOverride("font_color", TextWhite);
-        playerRow.AddChild(_playerInfoLabel);
+        hpRow.AddChild(_playerInfoLabel);
 
-        playerSection.AddChild(playerRow);
-        mainVBox.AddChild(playerSection);
+        playerArea.AddChild(hpRow);
 
-        // ═══ 핸드 영역 ═══
-        var handSection = MakeSection();
-        var handVBox = new VBoxContainer();
-        handVBox.AddThemeConstantOverride("separation", 6);
+        var energyRow = new HBoxContainer();
+        energyRow.AddThemeConstantOverride("separation", 8);
 
-        var handTitle = new Label();
-        handTitle.Text = "패 (더블클릭 → 자동 배치 / 슬롯 클릭 → 회수)";
-        handTitle.HorizontalAlignment = HorizontalAlignment.Center;
-        handTitle.AddThemeFontSizeOverride("font_size", 12);
-        handTitle.AddThemeColorOverride("font_color", new Color("#6A6A8A"));
-        handVBox.AddChild(handTitle);
+        _playerEnergyDisplay = new EnergyDisplay();
+        energyRow.AddChild(_playerEnergyDisplay);
 
-        var handScroll = new ScrollContainer();
-        handScroll.CustomMinimumSize = new Vector2(0, 195);
-        handScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Disabled;
-        handScroll.SizeFlagsVertical = SizeFlags.ExpandFill;
-        handScroll.ClipContents = false;
+        playerArea.AddChild(energyRow);
+
+        AddChild(playerArea);
+
+        // ═══ 우하단: 버튼 (세로 배치) ═══
+        var btnArea = new VBoxContainer();
+        btnArea.AnchorRight = 1; btnArea.AnchorBottom = 1;
+        btnArea.AnchorLeft = 1; btnArea.AnchorTop = 1;
+        btnArea.OffsetRight = -16; btnArea.OffsetLeft = -200;
+        btnArea.OffsetBottom = -12; btnArea.OffsetTop = -100;
+        btnArea.AddThemeConstantOverride("separation", 8);
+
+        _activateButton = MakeGoldButton("⚡ 스프레드 발동", 180);
+        _activateButton.Pressed += OnActivatePressed;
+        btnArea.AddChild(_activateButton);
+
+        _endTurnButton = MakeGoldButton("턴 종료", 180);
+        _endTurnButton.Pressed += OnEndTurnPressed;
+        btnArea.AddChild(_endTurnButton);
+
+        AddChild(btnArea);
+
+        // ═══ 하단 중앙: 핸드 영역 (카드) ═══
+        var handArea = new Control();
+        handArea.AnchorLeft = 0.15f; handArea.AnchorRight = 0.85f;
+        handArea.AnchorTop = 1; handArea.AnchorBottom = 1;
+        handArea.OffsetTop = -200; handArea.OffsetBottom = -10;
+        handArea.MouseFilter = MouseFilterEnum.Ignore;
+
         _handContainer = new HBoxContainer();
+        _handContainer.SetAnchorsPreset(LayoutPreset.FullRect);
         _handContainer.Alignment = BoxContainer.AlignmentMode.Center;
-        _handContainer.AddThemeConstantOverride("separation", 10);
-        handScroll.AddChild(_handContainer);
-        handVBox.AddChild(handScroll);
+        _handContainer.AddThemeConstantOverride("separation", -15);
+        _handContainer.MouseFilter = MouseFilterEnum.Ignore;
+        handArea.AddChild(_handContainer);
 
-        handSection.AddChild(handVBox);
-        mainVBox.AddChild(handSection);
+        AddChild(handArea);
 
         // ═══ 오버레이들 ═══
 
@@ -327,18 +346,6 @@ public partial class BattleUI : Control
         _pauseOverlay = BuildPauseOverlay();
         _pauseOverlay.Visible = false;
         AddChild(_pauseOverlay);
-    }
-
-    // --- 헬퍼: 섹션 패널 (패널 배경 텍스처 + 반투명) ---
-    private static PanelContainer MakeSection()
-    {
-        var panel = new PanelContainer();
-        var style = new StyleBoxTexture();
-        style.Texture = GD.Load<Texture2D>("res://Assets/Art/UI/panel_bg.png");
-        style.ModulateColor = new Color(1, 1, 1, 0.55f);
-        style.SetContentMarginAll(10);
-        panel.AddThemeStyleboxOverride("panel", style);
-        return panel;
     }
 
     // --- 헬퍼: 골드 테마 버튼 ---
@@ -676,6 +683,8 @@ public partial class BattleUI : Control
                 slot.SlotClicked += OnSlotClicked;
             _slotsConnected = true;
         }
+
+        UpdateSpreadPreview();
     }
 
     private void ShowBattleResult()
@@ -696,6 +705,85 @@ public partial class BattleUI : Control
         _resultLabel.Visible = true;
         _restartButton.Visible = true;
         _menuButton.Visible = true;
+    }
+
+    private void UpdateSpreadPreview()
+    {
+        var spread = _battle.CurrentSpread;
+        bool hasAny = spread.Slots.Any(s => s.IsOccupied);
+
+        if (!hasAny)
+        {
+            _spreadPreviewLabel.Text = "카드를 배치하면\n효과를 미리 볼 수 있습니다";
+            return;
+        }
+
+        var result = spread.Activate();
+        string text = "── 스프레드 효과 ──\n";
+
+        // 슬롯별 보너스 설명
+        foreach (var slot in spread.Slots)
+        {
+            if (slot.PlacedCard is not { } card) continue;
+            string pos = slot.Position switch
+            {
+                SlotPosition.Past => "과거",
+                SlotPosition.Present => "현재",
+                SlotPosition.Future => "미래",
+                _ => slot.Position.ToString()
+            };
+
+            text += $"\n[{pos}] {card.Data.CardName}";
+            if (card.IsReversed && slot.Position == SlotPosition.Past)
+                text += "\n  → 역방향 보너스 +2 피해";
+            if (card.Data.IsMajorArcana && slot.Position == SlotPosition.Future)
+                text += "\n  → 메이저 아르카나 +3 피해";
+        }
+
+        // 합산
+        text += $"\n\n── 합산 ──";
+        if (result.TotalDamage > 0) text += $"\n⚔ 총 피해: {result.TotalDamage}";
+        if (result.TotalBlock > 0) text += $"\n🛡 총 방어: {result.TotalBlock}";
+        if (result.TotalDraw > 0) text += $"\n✦ 다음 턴 드로우: +{result.TotalDraw}";
+
+        // 예언 적중 가능 여부
+        var prophecy = _battle.CurrentProphecy;
+        if (prophecy != null)
+        {
+            bool wouldHit = prophecy.Evaluate(spread, result);
+            if (wouldHit)
+                text += $"\n\n✧ 예언 적중! x{1.0f + _battle.ConsecutiveHits * 0.5f + 0.5f:F1}";
+            else
+                text += $"\n\n✧ 예언 미적중";
+        }
+
+        // 지배 수트 → 운명 선택지 미리보기
+        if (result.SuitCounts.Count > 0)
+        {
+            var dominant = result.SuitCounts.OrderByDescending(kv => kv.Value).First();
+            bool isDominant = result.SuitCounts.Count(kv => kv.Value == dominant.Value) == 1;
+            string suitName = dominant.Key switch
+            {
+                Suit.Wands => "완드",
+                Suit.Swords => "검",
+                Suit.Cups => "컵",
+                Suit.Pentacles => "펜타클",
+                _ => "?"
+            };
+
+            if (isDominant)
+                text += $"\n\n⚜ 지배 수트: {suitName}";
+            else
+                text += $"\n\n⚜ 지배 수트: 없음 (균형)";
+
+            var fate = FateChoice.Generate(result.SuitCounts);
+            text += $"\n운명A: {fate.OptionA.Name}";
+            text += $"\n  {fate.OptionA.Description}";
+            text += $"\n운명B: {fate.OptionB.Name}";
+            text += $"\n  {fate.OptionB.Description}";
+        }
+
+        _spreadPreviewLabel.Text = text;
     }
 
     private void Log(string message)

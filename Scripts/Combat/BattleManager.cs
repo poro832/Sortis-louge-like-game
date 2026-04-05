@@ -21,6 +21,7 @@ public class BattleManager
     public int MaxEnergy { get; set; } = 3;
     public int BonusEnergy { get; set; }
     public int DrawPerTurn { get; set; } = 5;
+    public int BonusDraw { get; set; }
     public int TurnNumber { get; private set; }
     public Spread CurrentSpread => _currentSpread;
     public Deck Deck => _deck;
@@ -55,7 +56,8 @@ public class BattleManager
         PlayerBlock = 0;
         _currentSpread = Spread.ThreeCard();
 
-        _deck.Draw(DrawPerTurn);
+        _deck.Draw(DrawPerTurn + BonusDraw);
+        BonusDraw = 0;
 
         var prophecy = _prophecy.GenerateNewProphecy();
         OnProphecyRevealed?.Invoke(prophecy);
@@ -123,9 +125,9 @@ public class BattleManager
         if (totalHeal > 0)
             PlayerHp = Math.Min(PlayerMaxHp, PlayerHp + totalHeal);
 
-        // 추가 드로우
+        // 추가 드로우 (다음 턴에 적용)
         if (result.TotalDraw > 0)
-            _deck.Draw(result.TotalDraw);
+            BonusDraw += result.TotalDraw;
 
         // 배치된 카드를 버림패로
         foreach (var slot in _currentSpread.Slots)
@@ -150,9 +152,9 @@ public class BattleManager
         if (fateBlock > 0)
             PlayerBlock += fateBlock;
 
-        // 추가 드로우
+        // 추가 드로우 (다음 턴에 적용)
         if (option.BonusDraw > 0)
-            _deck.Draw(option.BonusDraw);
+            BonusDraw += option.BonusDraw;
 
         // 회복
         if (option.BonusHeal > 0)

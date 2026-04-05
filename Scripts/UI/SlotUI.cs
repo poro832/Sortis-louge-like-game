@@ -36,7 +36,7 @@ public partial class SlotUI : Panel
         _frameBg.Size = new Vector2(140, 185);
         _frameBg.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
         _frameBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-        _frameBg.Modulate = new Color(1, 1, 1, 0.25f);
+        _frameBg.Modulate = new Color(1, 1, 1, 0.4f);
         _frameBg.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(_frameBg);
 
@@ -59,8 +59,8 @@ public partial class SlotUI : Panel
 
         // 카드 정보
         _cardInfoLabel = new Label();
-        _cardInfoLabel.Position = new Vector2(8, 80);
-        _cardInfoLabel.Size = new Vector2(124, 90);
+        _cardInfoLabel.Position = new Vector2(8, 72);
+        _cardInfoLabel.Size = new Vector2(124, 105);
         _cardInfoLabel.HorizontalAlignment = HorizontalAlignment.Center;
         _cardInfoLabel.VerticalAlignment = VerticalAlignment.Center;
         _cardInfoLabel.AutowrapMode = TextServer.AutowrapMode.Word;
@@ -94,22 +94,30 @@ public partial class SlotUI : Panel
     {
         _hasCard = true;
 
+        // 슬롯 배경을 카드 수트 일러스트로 변경
+        _frameBg.Texture = GD.Load<Texture2D>(GetCardIllustPath(card.Data.Suit));
+        _frameBg.Modulate = new Color(1, 1, 1, 0.5f);
+
         string info = card.Data.CardName;
-        if (card.IsReversed) info += " ↻";
-        info += "\n";
-        if (card.GetDamage() > 0) info += $"⚔{card.GetDamage()} ";
-        if (card.GetBlock() > 0) info += $"🛡{card.GetBlock()} ";
-        if (card.GetDraw() > 0) info += $"✦{card.GetDraw()}";
+        if (card.IsReversed) info += " (역방향)";
+        info += $"\n코스트: {card.Data.EnergyCost}";
+        if (card.GetDamage() > 0) info += $"\n⚔ 피해 {card.GetDamage()}";
+        if (card.GetBlock() > 0) info += $"\n🛡 방어 {card.GetBlock()}";
+        if (card.GetDraw() > 0) info += $"\n✦ 드로우 +{card.GetDraw()}";
+        if (card.GetHeal() > 0) info += $"\n♥ 회복 {card.GetHeal()}";
         _cardInfoLabel.Text = info;
         _cardInfoLabel.AddThemeColorOverride("font_color", new Color("#E8E8E8"));
+        _cardInfoLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.8f));
+        _cardInfoLabel.AddThemeConstantOverride("shadow_offset_x", 1);
+        _cardInfoLabel.AddThemeConstantOverride("shadow_offset_y", 1);
 
+        var suitColor = GetSuitColor(card.Data.Suit);
         var style = new StyleBoxFlat();
-        style.BgColor = new Color("#252545");
-        style.BorderColor = new Color("#9B59B6");
+        style.BgColor = new Color("#1A1A35", 0.7f);
+        style.BorderColor = suitColor;
         style.SetBorderWidthAll(2);
         style.SetCornerRadiusAll(10);
-        // 안쪽 글로우 효과 — 그림자로 표현
-        style.ShadowColor = new Color("#9B59B6", 0.25f);
+        style.ShadowColor = new Color(suitColor, 0.3f);
         style.ShadowSize = 6;
         AddThemeStyleboxOverride("panel", style);
 
@@ -133,6 +141,9 @@ public partial class SlotUI : Panel
         _cardInfoLabel.Text = "카드를 배치하세요";
         _cardInfoLabel.AddThemeColorOverride("font_color", new Color("#555555"));
         _positionIcon.RemoveThemeColorOverride("font_color");
+        // 슬롯 프레임을 원래 위치 이미지로 복원
+        _frameBg.Texture = GD.Load<Texture2D>(GetSlotFramePath(_position));
+        _frameBg.Modulate = new Color(1, 1, 1, 0.4f);
         ApplyEmptyStyle();
     }
 
@@ -178,5 +189,23 @@ public partial class SlotUI : Panel
         SlotPosition.Present => "res://Assets/Art/Slots/slot_frame_present.png",
         SlotPosition.Future => "res://Assets/Art/Slots/slot_frame_future.png",
         _ => "res://Assets/Art/Slots/slot_frame_present.png"
+    };
+
+    private static string GetCardIllustPath(Suit suit) => suit switch
+    {
+        Suit.Wands => "res://Assets/Art/Cards/Illustrations/card_wands.png",
+        Suit.Swords => "res://Assets/Art/Cards/Illustrations/card_swords.png",
+        Suit.Cups => "res://Assets/Art/Cards/Illustrations/card_cups.png",
+        Suit.Pentacles => "res://Assets/Art/Cards/Illustrations/card_pentacles.png",
+        _ => "res://Assets/Art/Cards/Illustrations/card_wands.png"
+    };
+
+    private static Color GetSuitColor(Suit suit) => suit switch
+    {
+        Suit.Wands => new Color("#C0392B"),
+        Suit.Swords => new Color("#2980B9"),
+        Suit.Cups => new Color("#27AE60"),
+        Suit.Pentacles => new Color("#F39C12"),
+        _ => new Color("#555555")
     };
 }

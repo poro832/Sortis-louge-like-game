@@ -14,7 +14,6 @@ public partial class CardUI : Panel
     private float _baseY;
 
     // 레이아웃 요소
-    private TextureRect _frameBg = null!;
     private TextureRect _illustBg = null!;
     private Panel _headerPanel = null!;
     private Label _costLabel = null!;
@@ -40,31 +39,23 @@ public partial class CardUI : Panel
         MouseExited += OnMouseExit;
         GuiInput += OnGuiInput;
 
-        // 투명 패널 — 프레임 텍스처가 배경 역할
+        ClipContents = true;
+
+        // 카드 배경 (단색 + 테두리 — 수트 색상은 SetCard에서 적용)
         var baseStyle = new StyleBoxFlat();
-        baseStyle.BgColor = new Color("#1C1C30", 0.6f);
-        baseStyle.SetCornerRadiusAll(10);
-        baseStyle.SetBorderWidthAll(0);
+        baseStyle.BgColor = new Color("#10102A", 0.9f);
+        baseStyle.SetCornerRadiusAll(8);
+        baseStyle.BorderColor = new Color("#3A3A6A", 0.5f);
+        baseStyle.SetBorderWidthAll(1);
         AddThemeStyleboxOverride("panel", baseStyle);
 
-        // 카드 프레임 텍스처 배경
-        _frameBg = new TextureRect();
-        _frameBg.Texture = GD.Load<Texture2D>("res://Assets/Art/Cards/card_frame.png");
-        _frameBg.Position = Vector2.Zero;
-        _frameBg.Size = new Vector2(130, 175);
-        _frameBg.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-        _frameBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-        _frameBg.Modulate = new Color(1, 1, 1, 0.3f);
-        _frameBg.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(_frameBg);
-
-        // 카드 수트 일러스트 배경
+        // 수트 일러스트 (카드 전체 배경으로 깔림)
         _illustBg = new TextureRect();
-        _illustBg.Position = new Vector2(10, 40);
-        _illustBg.Size = new Vector2(110, 80);
+        _illustBg.Position = new Vector2(0, 0);
+        _illustBg.Size = new Vector2(130, 175);
         _illustBg.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
         _illustBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-        _illustBg.Modulate = new Color(1, 1, 1, 0.2f);
+        _illustBg.Modulate = new Color(1, 1, 1, 0.25f);
         _illustBg.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(_illustBg);
 
@@ -73,54 +64,64 @@ public partial class CardUI : Panel
 
     private void BuildCardLayout()
     {
-        // 헤더 (수트 색상 바)
+        // 상단 얇은 수트 색상 악센트 라인 (헤더 대신)
         _headerPanel = new Panel();
         _headerPanel.Position = new Vector2(0, 0);
-        _headerPanel.Size = new Vector2(130, 38);
+        _headerPanel.Size = new Vector2(130, 4);
         AddChild(_headerPanel);
 
-        // 코스트 뱃지
+        // 코스트 뱃지 (원형 배경)
         _costLabel = new Label();
-        _costLabel.Position = new Vector2(6, 6);
-        _costLabel.Size = new Vector2(26, 26);
+        _costLabel.Position = new Vector2(4, 8);
+        _costLabel.Size = new Vector2(24, 24);
         _costLabel.HorizontalAlignment = HorizontalAlignment.Center;
         _costLabel.VerticalAlignment = VerticalAlignment.Center;
         _costLabel.AddThemeColorOverride("font_color", Colors.White);
-        FontManager.ApplyBody(_costLabel, 16);
+        _costLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.9f));
+        _costLabel.AddThemeConstantOverride("shadow_offset_x", 1);
+        _costLabel.AddThemeConstantOverride("shadow_offset_y", 1);
+        FontManager.ApplyBody(_costLabel, 18);
         AddChild(_costLabel);
 
         // 수트 아이콘 (이미지)
         _suitIconTex = new TextureRect();
-        _suitIconTex.Position = new Vector2(98, 5);
-        _suitIconTex.Size = new Vector2(28, 28);
+        _suitIconTex.Position = new Vector2(102, 8);
+        _suitIconTex.Size = new Vector2(22, 22);
         _suitIconTex.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
         _suitIconTex.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
         AddChild(_suitIconTex);
 
         // 카드 이름
         _nameLabel = new Label();
-        _nameLabel.Position = new Vector2(4, 42);
-        _nameLabel.Size = new Vector2(122, 28);
+        _nameLabel.Position = new Vector2(4, 34);
+        _nameLabel.Size = new Vector2(122, 24);
         _nameLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _nameLabel.AddThemeColorOverride("font_color", new Color("#E8E8E8"));
+        _nameLabel.AddThemeColorOverride("font_color", new Color("#F0E6D0"));
+        _nameLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.9f));
+        _nameLabel.AddThemeConstantOverride("shadow_offset_x", 1);
+        _nameLabel.AddThemeConstantOverride("shadow_offset_y", 1);
         FontManager.ApplyTitle(_nameLabel, 13);
         AddChild(_nameLabel);
 
-        // 구분선 역할 Label
+        // 구분선
         var divider = new ColorRect();
-        divider.Position = new Vector2(10, 72);
+        divider.Position = new Vector2(10, 60);
         divider.Size = new Vector2(110, 1);
-        divider.Color = new Color(1, 1, 1, 0.15f);
+        divider.Color = new Color(1, 1, 1, 0.2f);
         AddChild(divider);
 
         // 스탯
         _statsLabel = new Label();
-        _statsLabel.Position = new Vector2(8, 78);
-        _statsLabel.Size = new Vector2(114, 70);
+        _statsLabel.Position = new Vector2(8, 66);
+        _statsLabel.Size = new Vector2(114, 80);
         _statsLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _statsLabel.VerticalAlignment = VerticalAlignment.Center;
         _statsLabel.AutowrapMode = TextServer.AutowrapMode.Word;
-        _statsLabel.AddThemeColorOverride("font_color", new Color("#CCCCCC"));
-        FontManager.ApplyBody(_statsLabel, 13);
+        _statsLabel.AddThemeColorOverride("font_color", new Color("#EEEEEE"));
+        _statsLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.9f));
+        _statsLabel.AddThemeConstantOverride("shadow_offset_x", 1);
+        _statsLabel.AddThemeConstantOverride("shadow_offset_y", 1);
+        FontManager.ApplyBody(_statsLabel, 14);
         AddChild(_statsLabel);
 
         // 역방향 표시
@@ -129,7 +130,10 @@ public partial class CardUI : Panel
         _orientLabel.Size = new Vector2(122, 20);
         _orientLabel.HorizontalAlignment = HorizontalAlignment.Center;
         _orientLabel.AddThemeFontSizeOverride("font_size", 11);
-        _orientLabel.AddThemeColorOverride("font_color", new Color("#8E44AD"));
+        _orientLabel.AddThemeColorOverride("font_color", new Color("#B06ADB"));
+        _orientLabel.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.8f));
+        _orientLabel.AddThemeConstantOverride("shadow_offset_x", 1);
+        _orientLabel.AddThemeConstantOverride("shadow_offset_y", 1);
         AddChild(_orientLabel);
     }
 
@@ -145,12 +149,20 @@ public partial class CardUI : Panel
 
         var suitColor = GetSuitColor(_card.Data.Suit);
 
-        // 헤더 색상
+        // 상단 얇은 악센트 라인
         var headerStyle = new StyleBoxFlat();
-        headerStyle.BgColor = new Color(suitColor, 0.7f);
-        headerStyle.CornerRadiusTopLeft = 10;
-        headerStyle.CornerRadiusTopRight = 10;
+        headerStyle.BgColor = suitColor;
+        headerStyle.CornerRadiusTopLeft = 8;
+        headerStyle.CornerRadiusTopRight = 8;
         _headerPanel.AddThemeStyleboxOverride("panel", headerStyle);
+
+        // 카드 테두리를 수트 색상으로 은은하게
+        var cardStyle = new StyleBoxFlat();
+        cardStyle.BgColor = new Color("#10102A", 0.9f);
+        cardStyle.SetCornerRadiusAll(8);
+        cardStyle.BorderColor = new Color(suitColor, 0.4f);
+        cardStyle.SetBorderWidthAll(1);
+        AddThemeStyleboxOverride("panel", cardStyle);
 
         _costLabel.Text = _card.Data.EnergyCost.ToString();
         _suitIconTex.Texture = GD.Load<Texture2D>(GetSuitIconPath(_card.Data.Suit));
@@ -199,19 +211,23 @@ public partial class CardUI : Panel
     private void OnMouseEnter()
     {
         _isHovered = true;
+        ZIndex = 100;
         QueueRedraw();
         _hoverTween?.Kill();
         _hoverTween = CreateTween().SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Back);
-        _hoverTween.TweenProperty(this, "scale", new Vector2(1.08f, 1.08f), 0.15);
+        _hoverTween.TweenProperty(this, "scale", new Vector2(1.15f, 1.15f), 0.15);
+        _hoverTween.Parallel().TweenProperty(this, "position:y", -20f, 0.15);
     }
 
     private void OnMouseExit()
     {
         _isHovered = false;
+        ZIndex = 0;
         QueueRedraw();
         _hoverTween?.Kill();
         _hoverTween = CreateTween().SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
         _hoverTween.TweenProperty(this, "scale", Vector2.One, 0.15);
+        _hoverTween.Parallel().TweenProperty(this, "position:y", 0f, 0.15);
     }
 
     public void PlaySelectPulse()
